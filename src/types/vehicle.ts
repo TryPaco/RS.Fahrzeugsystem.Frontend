@@ -1,0 +1,42 @@
+export type Vehicle = {
+  id: string;
+  customerId: string;
+  customerName?: string;
+  internalNumber: string;
+  fin?: string;
+  licensePlate?: string;
+  brand: string;
+  model: string;
+  modelVariant?: string;
+  buildYear?: number;
+  engineCode?: string;
+  transmission?: string;
+  fuelType?: string;
+  color?: string;
+  currentKm: number;
+  stockPowerHp?: number;
+  currentPowerHp?: number;
+  softwareStage?: string;
+  notes?: string;
+  isArchived: boolean;
+};
+
+export type CreateVehicleRequest = {
+  customerId: string;
+  internalNumber: string;
+  fin?: string;
+  licensePlate?: string;
+  brand: string;
+  model: string;
+  modelVariant?: string;
+  buildYear?: number;
+  engineCode?: string;
+  transmission?: string;
+  fuelType?: string;
+  color?: string;
+  currentKm: number;
+  stockPowerHp?: number;
+  currentPowerHp?: number;
+  softwareStage?: string;
+  notes?: string;
+};
