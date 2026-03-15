@@ -6,6 +6,7 @@ import { DashboardPage } from './pages/DashboardPage';
 import { CustomersPage } from './pages/CustomersPage';
 import { VehiclesPage } from './pages/VehiclesPage';
 import { LabelsPage } from './pages/LabelsPage';
+import { VehicleDetailPage } from "./pages/VehicleDetailPage";
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
         <Route index element={<DashboardPage />} />
         <Route path="customers" element={<CustomersPage />} />
         <Route path="vehicles" element={<VehiclesPage />} />
+        <Route path="vehicles/:id" element={<VehicleDetailPage />} />
         <Route path="labels" element={<LabelsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />

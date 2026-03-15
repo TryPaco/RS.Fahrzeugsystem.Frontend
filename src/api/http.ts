@@ -15,3 +15,17 @@ http.interceptors.request.use((config) => {
 
   return config;
 });
+
+http.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    if (error.response?.status === 401) {
+      localStorage.removeItem('rs_token');
+      localStorage.removeItem('rs_user');
+      localStorage.removeItem('rs_token_expires');
+      window.location.href = '/login';
+    }
+
+    return Promise.reject(error);
+  }
+);
