@@ -1,12 +1,12 @@
 import { FormEvent, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
-  const [username, setUsername] = useState('admin');
-  const [password, setPassword] = useState('Admin123!');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -27,27 +27,71 @@ export function LoginPage() {
 
   return (
     <div className="auth-page">
-      <form className="auth-card" onSubmit={handleSubmit}>
-        <div className="brand-logo large">RS</div>
-        <h1>RS Fahrzeugsystem</h1>
-        <p>Werkstattverwaltung für Fahrzeuge, Kunden und QR-Labels.</p>
+      <div className="auth-layout">
+        <section className="auth-hero">
+          <img
+            className="brand-logo-image brand-logo-large-image"
+            src="/logo.png"
+            alt="RS Engineers Logo"
+          />
+          <span className="eyebrow">RS-Engineers / B-Tuning</span>
+          <h1>Fahrzeugsystem für Werkstatt und Performance</h1>
+          <p>
+            Kunden, Fahrzeuge, Historie und Labels an einem Ort. Schnell für den Alltag,
+            sauber für Wachstum und Administration.
+          </p>
 
-        <label>
-          Benutzername
-          <input value={username} onChange={(e) => setUsername(e.target.value)} />
-        </label>
+          <div className="auth-hero-points">
+            <div className="auth-hero-point">
+              <strong>Zentral</strong>
+              <span>Alle Fahrzeug- und Kundendaten übersichtlich gebündelt.</span>
+            </div>
+            <div className="auth-hero-point">
+              <strong>Werkstattnah</strong>
+              <span>VIN, Umbauten, Historie und Label-Zuordnung direkt im Zugriff.</span>
+            </div>
+            <div className="auth-hero-point">
+              <strong>Sicher</strong>
+              <span>Benutzer, Rollen und Admin-Bereiche sauber voneinander getrennt.</span>
+            </div>
+          </div>
+        </section>
 
-        <label>
-          Passwort
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        </label>
+        <form className="auth-card" onSubmit={handleSubmit}>
+          <span className="eyebrow">Anmeldung</span>
+          <h2 className="auth-card-title">Willkommen zurück</h2>
+          <p>Melde dich an, um mit Kunden, Fahrzeugen und Labels weiterzuarbeiten.</p>
 
-        {error ? <div className="error-box">{error}</div> : null}
+          <label className="field">
+            <span>Benutzername</span>
+            <input
+              value={username}
+              onChange={(event) => setUsername(event.target.value)}
+              autoComplete="username"
+            />
+          </label>
 
-        <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? 'Anmeldung läuft…' : 'Anmelden'}
-        </button>
-      </form>
+          <label className="field">
+            <span>Passwort</span>
+            <input
+              type="password"
+              value={password}
+              onChange={(event) => setPassword(event.target.value)}
+              autoComplete="current-password"
+            />
+          </label>
+
+          {error ? <div className="error-box">{error}</div> : null}
+
+          <button type="submit" disabled={isSubmitting}>
+            {isSubmitting ? 'Anmeldung laeuft...' : 'Anmelden'}
+          </button>
+
+          <Link className="auth-link" to="/forgot-password">
+            Passwort vergessen?
+          </Link>
+        </form>
+      </div>
     </div>
   );
 }

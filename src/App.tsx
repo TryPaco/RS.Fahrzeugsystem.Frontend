@@ -7,11 +7,18 @@ import { CustomersPage } from './pages/CustomersPage';
 import { VehiclesPage } from './pages/VehiclesPage';
 import { LabelsPage } from './pages/LabelsPage';
 import { VehicleDetailPage } from "./pages/VehicleDetailPage";
+import { UsersPage } from './pages/UsersPage';
+import { ChangePasswordPage } from './pages/ChangePasswordPage';
+import { SmtpSettingsPage } from './pages/SmtpSettingsPage';
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
+import { ResetPasswordPage } from './pages/ResetPasswordPage';
 
 export default function App() {
   return (
     <Routes>
       <Route path="/login" element={<LoginPage />} />
+      <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+      <Route path="/reset-password" element={<ResetPasswordPage />} />
       <Route
         path="/"
         element={
@@ -25,6 +32,9 @@ export default function App() {
         <Route path="vehicles" element={<VehiclesPage />} />
         <Route path="vehicles/:id" element={<VehicleDetailPage />} />
         <Route path="labels" element={<LabelsPage />} />
+        <Route path="users" element={<UsersPage />} />
+        <Route path="change-password" element={<ChangePasswordPage />} />
+        <Route path="settings/smtp" element={<SmtpSettingsPage />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

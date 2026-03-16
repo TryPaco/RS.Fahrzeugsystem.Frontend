@@ -7,6 +7,7 @@ type AuthContextValue = {
   user: MeResponse | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  hasPermission: (permission: string) => boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
 };
@@ -55,12 +56,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUser(null);
   }
 
+  function hasPermission(permission: string) {
+    return user?.permissions.includes(permission) ?? false;
+  }
+
   const value = useMemo<AuthContextValue>(
     () => ({
       token,
       user,
       isAuthenticated: Boolean(token),
       isLoading,
+      hasPermission,
       login,
       logout,
     }),

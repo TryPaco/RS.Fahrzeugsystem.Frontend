@@ -1,4 +1,4 @@
-# RS Fahrzeugsystem Frontend
+# Fahrzeugsystem Frontend
 
 React + Vite + TypeScript Frontend für dein Backend unter `RS.Fahrzeugsystem.Api`.
 

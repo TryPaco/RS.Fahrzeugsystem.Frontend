@@ -88,6 +88,18 @@ const initialForm: CreateVehicleRequest = {
   notes: "",
 };
 
+function getNextVehicleInternalNumber(items: VehicleListItem[]) {
+  const highestNumber = items.reduce((max, item) => {
+    const match = /^FZG-(\d+)$/.exec(item.internalNumber?.trim() ?? "");
+    if (!match) return max;
+
+    const parsed = Number(match[1]);
+    return Number.isNaN(parsed) ? max : Math.max(max, parsed);
+  }, 0);
+
+  return `FZG-${String(highestNumber + 1).padStart(6, "0")}`;
+}
+
 export function VehiclesPage() {
   const [items, setItems] = useState<VehicleListItem[]>([]);
   const [customers, setCustomers] = useState<CustomerListItem[]>([]);
@@ -127,30 +139,35 @@ export function VehiclesPage() {
       const response = await http.get<CustomerListItem[]>("/customers?includeArchived=false");
       setCustomers(response.data);
     } catch {
-      // bewusst leer
+      setCustomers([]);
     }
   }
 
   useEffect(() => {
-    loadVehicles();
-    loadCustomers();
+    void loadVehicles();
+    void loadCustomers();
   }, []);
+
+  const nextVehicleInternalNumber = useMemo(
+    () => getNextVehicleInternalNumber(items),
+    [items]
+  );
 
   const filteredItems = useMemo(() => {
     const term = query.trim().toLowerCase();
     if (!term) return items;
 
-    return items.filter((x) => {
+    return items.filter((item) => {
       return (
-        x.internalNumber.toLowerCase().includes(term) ||
-        (x.fin ?? "").toLowerCase().includes(term) ||
-        (x.licensePlate ?? "").toLowerCase().includes(term) ||
-        x.brand.toLowerCase().includes(term) ||
-        x.model.toLowerCase().includes(term) ||
-        (x.modelVariant ?? "").toLowerCase().includes(term) ||
-        (x.engineCode ?? "").toLowerCase().includes(term) ||
-        (x.softwareStage ?? "").toLowerCase().includes(term) ||
-        (x.customerName ?? "").toLowerCase().includes(term)
+        item.internalNumber.toLowerCase().includes(term) ||
+        (item.fin ?? "").toLowerCase().includes(term) ||
+        (item.licensePlate ?? "").toLowerCase().includes(term) ||
+        item.brand.toLowerCase().includes(term) ||
+        item.model.toLowerCase().includes(term) ||
+        (item.modelVariant ?? "").toLowerCase().includes(term) ||
+        (item.engineCode ?? "").toLowerCase().includes(term) ||
+        (item.softwareStage ?? "").toLowerCase().includes(term) ||
+        item.customerName.toLowerCase().includes(term)
       );
     });
   }, [items, query]);
@@ -163,7 +180,7 @@ export function VehiclesPage() {
   }
 
   function resetForm() {
-    setForm(initialForm);
+    setForm({ ...initialForm, internalNumber: nextVehicleInternalNumber });
     setCreateError("");
     setVinError("");
     setVinInfo(null);
@@ -174,7 +191,6 @@ export function VehiclesPage() {
     setVinInfo(null);
 
     const vin = form.fin.trim();
-
     if (!vin) {
       setVinError("Bitte zuerst eine FIN eingeben.");
       return;
@@ -183,10 +199,7 @@ export function VehiclesPage() {
     setIsDecodingVin(true);
 
     try {
-      const response = await http.post<VinDecodeResult>("/vin/decode", {
-        vin,
-      });
-
+      const response = await http.post<VinDecodeResult>("/vin/decode", { vin });
       const data = response.data;
       setVinInfo(data);
 
@@ -214,11 +227,6 @@ export function VehiclesPage() {
 
     if (!form.customerId) {
       setCreateError("Bitte einen Kunden auswählen.");
-      return;
-    }
-
-    if (!form.internalNumber.trim()) {
-      setCreateError("Interne Fahrzeugnummer ist erforderlich.");
       return;
     }
 
@@ -285,15 +293,24 @@ export function VehiclesPage() {
       <div className="page-header">
         <div>
           <h1>Fahrzeuge</h1>
-          <p>Verwalte Fahrzeuge, Kundenbezug und technische Daten.</p>
+          <p>Verwalte Fahrzeuge, Kundenzuordnung und technische Fahrzeugdaten.</p>
         </div>
 
         <button
           type="button"
           onClick={() => {
-            setShowCreateForm((prev) => !prev);
+            setShowCreateForm((prev) => {
+              const nextOpenState = !prev;
+
+              if (nextOpenState) {
+                setForm({ ...initialForm, internalNumber: nextVehicleInternalNumber });
+              }
+
+              return nextOpenState;
+            });
             setCreateError("");
             setVinError("");
+            setVinInfo(null);
           }}
         >
           {showCreateForm ? "Formular schließen" : "Neues Fahrzeug"}
@@ -305,9 +322,9 @@ export function VehiclesPage() {
           <span>Suche</span>
           <input
             type="text"
-            placeholder="Suche nach intern, FIN, Kennzeichen, Marke, Modell, Kunde..."
+            placeholder="Suche nach interner Nummer, FIN, Kennzeichen, Marke, Modell oder Kunde..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(event) => setQuery(event.target.value)}
           />
         </label>
       </div>
@@ -321,7 +338,7 @@ export function VehiclesPage() {
               <span>Kunde *</span>
               <select
                 value={form.customerId}
-                onChange={(e) => updateForm("customerId", e.target.value)}
+                onChange={(event) => updateForm("customerId", event.target.value)}
               >
                 <option value="">Bitte auswählen</option>
                 {customers.map((customer) => (
@@ -336,19 +353,15 @@ export function VehiclesPage() {
             </label>
 
             <label className="field">
-              <span>Interne Nummer *</span>
-              <input
-                value={form.internalNumber}
-                onChange={(e) => updateForm("internalNumber", e.target.value)}
-                placeholder="z. B. FZG-000001"
-              />
+              <span>Interne Nummer</span>
+              <input value={form.internalNumber} readOnly />
             </label>
 
             <label className="field">
               <span>Kennzeichen</span>
               <input
                 value={form.licensePlate}
-                onChange={(e) => updateForm("licensePlate", e.target.value)}
+                onChange={(event) => updateForm("licensePlate", event.target.value)}
                 placeholder="S-RS-123"
               />
             </label>
@@ -358,7 +371,7 @@ export function VehiclesPage() {
               <div className="inline-action">
                 <input
                   value={form.fin}
-                  onChange={(e) => updateForm("fin", e.target.value.toUpperCase())}
+                  onChange={(event) => updateForm("fin", event.target.value.toUpperCase())}
                   placeholder="z. B. WVWZZZ3HZNE000001"
                 />
                 <button
@@ -376,7 +389,7 @@ export function VehiclesPage() {
               <span>Marke *</span>
               <input
                 value={form.brand}
-                onChange={(e) => updateForm("brand", e.target.value)}
+                onChange={(event) => updateForm("brand", event.target.value)}
                 placeholder="Volkswagen"
               />
             </label>
@@ -385,7 +398,7 @@ export function VehiclesPage() {
               <span>Modell *</span>
               <input
                 value={form.model}
-                onChange={(e) => updateForm("model", e.target.value)}
+                onChange={(event) => updateForm("model", event.target.value)}
                 placeholder="Arteon R Shooting Brake"
               />
             </label>
@@ -394,7 +407,7 @@ export function VehiclesPage() {
               <span>Modellvariante</span>
               <input
                 value={form.modelVariant}
-                onChange={(e) => updateForm("modelVariant", e.target.value)}
+                onChange={(event) => updateForm("modelVariant", event.target.value)}
               />
             </label>
 
@@ -403,7 +416,7 @@ export function VehiclesPage() {
               <input
                 type="number"
                 value={form.buildYear}
-                onChange={(e) => updateForm("buildYear", e.target.value)}
+                onChange={(event) => updateForm("buildYear", event.target.value)}
               />
             </label>
 
@@ -411,7 +424,7 @@ export function VehiclesPage() {
               <span>Motorcode</span>
               <input
                 value={form.engineCode}
-                onChange={(e) => updateForm("engineCode", e.target.value)}
+                onChange={(event) => updateForm("engineCode", event.target.value)}
               />
             </label>
 
@@ -419,7 +432,7 @@ export function VehiclesPage() {
               <span>Getriebe</span>
               <input
                 value={form.transmission}
-                onChange={(e) => updateForm("transmission", e.target.value)}
+                onChange={(event) => updateForm("transmission", event.target.value)}
               />
             </label>
 
@@ -427,7 +440,7 @@ export function VehiclesPage() {
               <span>Kraftstoff</span>
               <input
                 value={form.fuelType}
-                onChange={(e) => updateForm("fuelType", e.target.value)}
+                onChange={(event) => updateForm("fuelType", event.target.value)}
               />
             </label>
 
@@ -435,7 +448,7 @@ export function VehiclesPage() {
               <span>Farbe</span>
               <input
                 value={form.color}
-                onChange={(e) => updateForm("color", e.target.value)}
+                onChange={(event) => updateForm("color", event.target.value)}
               />
             </label>
 
@@ -444,7 +457,7 @@ export function VehiclesPage() {
               <input
                 type="number"
                 value={form.currentKm}
-                onChange={(e) => updateForm("currentKm", e.target.value)}
+                onChange={(event) => updateForm("currentKm", event.target.value)}
               />
             </label>
 
@@ -453,7 +466,7 @@ export function VehiclesPage() {
               <input
                 type="number"
                 value={form.stockPowerHp}
-                onChange={(e) => updateForm("stockPowerHp", e.target.value)}
+                onChange={(event) => updateForm("stockPowerHp", event.target.value)}
               />
             </label>
 
@@ -462,7 +475,7 @@ export function VehiclesPage() {
               <input
                 type="number"
                 value={form.currentPowerHp}
-                onChange={(e) => updateForm("currentPowerHp", e.target.value)}
+                onChange={(event) => updateForm("currentPowerHp", event.target.value)}
               />
             </label>
 
@@ -470,7 +483,7 @@ export function VehiclesPage() {
               <span>Software Stage</span>
               <input
                 value={form.softwareStage}
-                onChange={(e) => updateForm("softwareStage", e.target.value)}
+                onChange={(event) => updateForm("softwareStage", event.target.value)}
                 placeholder="z. B. Stage 3"
               />
             </label>
@@ -539,7 +552,7 @@ export function VehiclesPage() {
             <textarea
               rows={4}
               value={form.notes}
-              onChange={(e) => updateForm("notes", e.target.value)}
+              onChange={(event) => updateForm("notes", event.target.value)}
             />
           </label>
 

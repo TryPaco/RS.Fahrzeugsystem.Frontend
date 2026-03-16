@@ -2,8 +2,9 @@ import { NavLink, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 
 export function AppLayout() {
-  const { logout, user } = useAuth();
+  const { logout, user, hasPermission } = useAuth();
   const navigate = useNavigate();
+  const isSuperadmin = user?.roles.includes('Superadmin') ?? false;
 
   function handleLogout() {
     logout();
@@ -14,10 +15,10 @@ export function AppLayout() {
     <div className="app-shell">
       <aside className="sidebar">
         <div className="brand-block">
-          <div className="brand-logo">RS</div>
+          <img className="brand-logo brand-logo-image" src="/logo.png" alt="RS Engineers Logo" />
           <div>
-            <strong>RS Fahrzeugsystem</strong>
-            <p>RS-Engineers / BTuning</p>
+            <strong>Fahrzeugsystem</strong>
+            <p>RS-Engineers / B-Tuning</p>
           </div>
         </div>
 
@@ -26,6 +27,8 @@ export function AppLayout() {
           <NavLink to="/customers">Kunden</NavLink>
           <NavLink to="/vehicles">Fahrzeuge</NavLink>
           <NavLink to="/labels">Labels</NavLink>
+          {hasPermission('users.view') ? <NavLink to="/users">Benutzer</NavLink> : null}
+          {isSuperadmin ? <NavLink to="/settings/smtp">E-Mail</NavLink> : null}
         </nav>
       </aside>
 
@@ -35,7 +38,12 @@ export function AppLayout() {
             <strong>{user?.displayName ?? 'Benutzer'}</strong>
             <span>{user?.username}</span>
           </div>
-          <button className="ghost-button" onClick={handleLogout}>Abmelden</button>
+          <div className="actions">
+            <button className="ghost-button" onClick={() => navigate('/change-password')}>
+              Passwort ändern
+            </button>
+            <button className="ghost-button" onClick={handleLogout}>Abmelden</button>
+          </div>
         </header>
 
         <main className="page-content">

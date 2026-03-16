@@ -120,37 +120,35 @@ export function LabelsPage() {
       const response = await http.get<VehicleListItem[]>("/vehicles?includeArchived=false");
       setVehicles(response.data);
     } catch {
-      // ignorieren
+      setVehicles([]);
     }
   }
 
   useEffect(() => {
-    loadLabels();
-    loadVehicles();
+    void loadLabels();
+    void loadVehicles();
   }, []);
 
   const filteredItems = useMemo(() => {
     const term = query.trim().toLowerCase();
     if (!term) return items;
 
-    return items.filter((x) => {
+    return items.filter((item) => {
       return (
-        x.code.toLowerCase().includes(term) ||
-        x.prefix.toLowerCase().includes(term) ||
-        getStatusText(x.status).toLowerCase().includes(term) ||
-        (x.positionOnVehicle ?? "").toLowerCase().includes(term) ||
-        (x.notes ?? "").toLowerCase().includes(term) ||
-        (x.vehicle?.internalNumber ?? "").toLowerCase().includes(term) ||
-        (x.vehicle?.licensePlate ?? "").toLowerCase().includes(term) ||
-        (x.vehicle?.brand ?? "").toLowerCase().includes(term) ||
-        (x.vehicle?.model ?? "").toLowerCase().includes(term)
+        item.code.toLowerCase().includes(term) ||
+        item.prefix.toLowerCase().includes(term) ||
+        getStatusText(item.status).toLowerCase().includes(term) ||
+        (item.positionOnVehicle ?? "").toLowerCase().includes(term) ||
+        (item.notes ?? "").toLowerCase().includes(term) ||
+        (item.vehicle?.internalNumber ?? "").toLowerCase().includes(term) ||
+        (item.vehicle?.licensePlate ?? "").toLowerCase().includes(term) ||
+        (item.vehicle?.brand ?? "").toLowerCase().includes(term) ||
+        (item.vehicle?.model ?? "").toLowerCase().includes(term)
       );
     });
   }, [items, query]);
 
-  const freeLabels = useMemo(() => {
-    return items.filter((x) => x.status === 0);
-  }, [items]);
+  const freeLabels = useMemo(() => items.filter((item) => item.status === 0), [items]);
 
   async function handleCreateLabel(event: FormEvent) {
     event.preventDefault();
@@ -158,7 +156,6 @@ export function LabelsPage() {
     setCreateSuccess("");
 
     const code = normalizeLabelCode(createForm.code);
-
     if (!code) {
       setCreateError("Label-Code ist erforderlich.");
       return;
@@ -197,7 +194,6 @@ export function LabelsPage() {
     setAssignSuccess("");
 
     const code = normalizeLabelCode(assignForm.code);
-
     if (!code) {
       setAssignError("Label-Code ist erforderlich.");
       return;
@@ -222,10 +218,6 @@ export function LabelsPage() {
         positionOnVehicle: assignForm.positionOnVehicle.trim() || null,
       });
 
-      if (assignForm.positionOnVehicle.trim()) {
-        // optional vorbereitet, falls Backend später Position speichert
-      }
-
       setAssignSuccess("Label erfolgreich zugewiesen.");
       setAssignForm(initialAssignForm);
       await loadLabels();
@@ -241,29 +233,24 @@ export function LabelsPage() {
   }
 
   async function handleUnassignLabel(code: string) {
-
     const confirmed = window.confirm(
-      `⚠️ Label ${code} wirklich vom Fahrzeug entfernen?\n\nDiese Aktion kann rückgängig gemacht werden, indem das Label erneut zugewiesen wird.`
+      `Label ${code} wirklich vom Fahrzeug entfernen?\n\nDas Label kann später erneut zugewiesen werden.`
     );
 
     if (!confirmed) return;
 
     try {
-
       await http.post("/labels/unassign", null, {
         params: { code },
       });
 
       await loadLabels();
-
     } catch (error: any) {
-
       alert(
         error?.response?.data?.title ||
-        error?.response?.data ||
-        "Label konnte nicht gelöst werden."
+          error?.response?.data ||
+          "Label konnte nicht gelöst werden."
       );
-
     }
   }
 
@@ -272,7 +259,7 @@ export function LabelsPage() {
       <div className="page-header">
         <div>
           <h1>Labels</h1>
-          <p>Verwalte externe QR-Codes für RS-Engineers und BTuning Fahrzeuge.</p>
+          <p>Verwalte QR-Codes, freie Kennungen und die Zuweisung zu Fahrzeugen.</p>
         </div>
       </div>
 
@@ -281,9 +268,9 @@ export function LabelsPage() {
           <span>Suche</span>
           <input
             type="text"
-            placeholder="Suche nach Code, Prefix, Fahrzeug, Kennzeichen..."
+            placeholder="Suche nach Code, Prefix, Fahrzeug, Kennzeichen oder Status..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(event) => setQuery(event.target.value)}
           />
         </label>
       </div>
@@ -296,8 +283,8 @@ export function LabelsPage() {
             <span>Label-Code *</span>
             <input
               value={createForm.code}
-              onChange={(e) =>
-                setCreateForm((prev) => ({ ...prev, code: e.target.value.toUpperCase() }))
+              onChange={(event) =>
+                setCreateForm((prev) => ({ ...prev, code: event.target.value.toUpperCase() }))
               }
               placeholder="RS-000001 oder B-000001"
             />
@@ -308,8 +295,8 @@ export function LabelsPage() {
             <textarea
               rows={3}
               value={createForm.notes}
-              onChange={(e) =>
-                setCreateForm((prev) => ({ ...prev, notes: e.target.value }))
+              onChange={(event) =>
+                setCreateForm((prev) => ({ ...prev, notes: event.target.value }))
               }
             />
           </label>
@@ -331,8 +318,8 @@ export function LabelsPage() {
             <span>Freies Label *</span>
             <select
               value={assignForm.code}
-              onChange={(e) =>
-                setAssignForm((prev) => ({ ...prev, code: e.target.value }))
+              onChange={(event) =>
+                setAssignForm((prev) => ({ ...prev, code: event.target.value }))
               }
             >
               <option value="">Bitte auswählen</option>
@@ -348,8 +335,8 @@ export function LabelsPage() {
             <span>Fahrzeug *</span>
             <select
               value={assignForm.vehicleId}
-              onChange={(e) =>
-                setAssignForm((prev) => ({ ...prev, vehicleId: e.target.value }))
+              onChange={(event) =>
+                setAssignForm((prev) => ({ ...prev, vehicleId: event.target.value }))
               }
             >
               <option value="">Bitte auswählen</option>
@@ -366,10 +353,10 @@ export function LabelsPage() {
             <span>Position am Fahrzeug</span>
             <input
               value={assignForm.positionOnVehicle}
-              onChange={(e) =>
+              onChange={(event) =>
                 setAssignForm((prev) => ({
                   ...prev,
-                  positionOnVehicle: e.target.value,
+                  positionOnVehicle: event.target.value,
                 }))
               }
               placeholder="z. B. Motorraum"
@@ -431,7 +418,7 @@ export function LabelsPage() {
                           <button
                             type="button"
                             className="secondary"
-                            onClick={() => handleUnassignLabel(item.code)}
+                            onClick={() => void handleUnassignLabel(item.code)}
                           >
                             Lösen
                           </button>

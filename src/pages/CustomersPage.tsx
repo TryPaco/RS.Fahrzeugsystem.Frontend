@@ -41,6 +41,18 @@ const initialForm: CreateCustomerRequest = {
   notes: "",
 };
 
+function getNextCustomerNumber(items: CustomerListItem[]) {
+  const highestNumber = items.reduce((max, item) => {
+    const match = /^K-(\d+)$/.exec(item.customerNumber?.trim() ?? "");
+    if (!match) return max;
+
+    const parsed = Number(match[1]);
+    return Number.isNaN(parsed) ? max : Math.max(max, parsed);
+  }, 0);
+
+  return `K-${String(highestNumber + 1).padStart(6, "0")}`;
+}
+
 export function CustomersPage() {
   const [items, setItems] = useState<CustomerListItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,22 +84,24 @@ export function CustomersPage() {
   }
 
   useEffect(() => {
-    loadCustomers();
+    void loadCustomers();
   }, []);
+
+  const nextCustomerNumber = useMemo(() => getNextCustomerNumber(items), [items]);
 
   const filteredItems = useMemo(() => {
     const term = query.trim().toLowerCase();
     if (!term) return items;
 
-    return items.filter((x) => {
-      const fullName = `${x.firstName} ${x.lastName}`.toLowerCase();
+    return items.filter((item) => {
+      const fullName = `${item.firstName} ${item.lastName}`.toLowerCase();
       return (
-        x.customerNumber?.toLowerCase().includes(term) ||
+        item.customerNumber.toLowerCase().includes(term) ||
         fullName.includes(term) ||
-        (x.companyName ?? "").toLowerCase().includes(term) ||
-        (x.phone ?? "").toLowerCase().includes(term) ||
-        (x.email ?? "").toLowerCase().includes(term) ||
-        (x.city ?? "").toLowerCase().includes(term)
+        (item.companyName ?? "").toLowerCase().includes(term) ||
+        (item.phone ?? "").toLowerCase().includes(term) ||
+        (item.email ?? "").toLowerCase().includes(term) ||
+        (item.city ?? "").toLowerCase().includes(term)
       );
     });
   }, [items, query]);
@@ -100,7 +114,7 @@ export function CustomersPage() {
   }
 
   function resetForm() {
-    setForm(initialForm);
+    setForm({ ...initialForm, customerNumber: nextCustomerNumber });
     setCreateError("");
     setCreateSuccess("");
   }
@@ -109,11 +123,6 @@ export function CustomersPage() {
     event.preventDefault();
     setCreateError("");
     setCreateSuccess("");
-
-    if (!form.customerNumber.trim()) {
-      setCreateError("Kundennummer ist erforderlich.");
-      return;
-    }
 
     if (!form.firstName.trim()) {
       setCreateError("Vorname ist erforderlich.");
@@ -162,13 +171,21 @@ export function CustomersPage() {
       <div className="page-header">
         <div>
           <h1>Kunden</h1>
-          <p>Verwalte Kundendaten für RS-Engineers und BTuning Fahrzeuge.</p>
+          <p>Verwalte Kundendaten für Werkstatt, Betreuung und Fahrzeughistorie.</p>
         </div>
 
         <button
           type="button"
           onClick={() => {
-            setShowCreateForm((prev) => !prev);
+            setShowCreateForm((prev) => {
+              const nextOpenState = !prev;
+
+              if (nextOpenState) {
+                setForm({ ...initialForm, customerNumber: nextCustomerNumber });
+              }
+
+              return nextOpenState;
+            });
             setCreateError("");
             setCreateSuccess("");
           }}
@@ -182,9 +199,9 @@ export function CustomersPage() {
           <span>Suche</span>
           <input
             type="text"
-            placeholder="Suche nach Kundennummer, Name, Firma, Telefon, E-Mail, Ort..."
+            placeholder="Suche nach Kundennummer, Name, Firma, Telefon, E-Mail oder Ort..."
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
+            onChange={(event) => setQuery(event.target.value)}
           />
         </label>
       </div>
@@ -195,19 +212,15 @@ export function CustomersPage() {
 
           <div className="form-grid">
             <label className="field">
-              <span>Kundennummer *</span>
-              <input
-                value={form.customerNumber}
-                onChange={(e) => updateForm("customerNumber", e.target.value)}
-                placeholder="z. B. K-000001"
-              />
+              <span>Kundennummer</span>
+              <input value={form.customerNumber} readOnly />
             </label>
 
             <label className="field">
               <span>Firma</span>
               <input
                 value={form.companyName ?? ""}
-                onChange={(e) => updateForm("companyName", e.target.value)}
+                onChange={(event) => updateForm("companyName", event.target.value)}
                 placeholder="RS Engineers GmbH"
               />
             </label>
@@ -216,7 +229,7 @@ export function CustomersPage() {
               <span>Vorname *</span>
               <input
                 value={form.firstName}
-                onChange={(e) => updateForm("firstName", e.target.value)}
+                onChange={(event) => updateForm("firstName", event.target.value)}
               />
             </label>
 
@@ -224,7 +237,7 @@ export function CustomersPage() {
               <span>Nachname *</span>
               <input
                 value={form.lastName}
-                onChange={(e) => updateForm("lastName", e.target.value)}
+                onChange={(event) => updateForm("lastName", event.target.value)}
               />
             </label>
 
@@ -232,7 +245,7 @@ export function CustomersPage() {
               <span>Telefon</span>
               <input
                 value={form.phone ?? ""}
-                onChange={(e) => updateForm("phone", e.target.value)}
+                onChange={(event) => updateForm("phone", event.target.value)}
               />
             </label>
 
@@ -241,7 +254,7 @@ export function CustomersPage() {
               <input
                 type="email"
                 value={form.email ?? ""}
-                onChange={(e) => updateForm("email", e.target.value)}
+                onChange={(event) => updateForm("email", event.target.value)}
               />
             </label>
 
@@ -249,7 +262,7 @@ export function CustomersPage() {
               <span>Straße</span>
               <input
                 value={form.street ?? ""}
-                onChange={(e) => updateForm("street", e.target.value)}
+                onChange={(event) => updateForm("street", event.target.value)}
               />
             </label>
 
@@ -257,7 +270,7 @@ export function CustomersPage() {
               <span>PLZ</span>
               <input
                 value={form.zipCode ?? ""}
-                onChange={(e) => updateForm("zipCode", e.target.value)}
+                onChange={(event) => updateForm("zipCode", event.target.value)}
               />
             </label>
 
@@ -265,7 +278,7 @@ export function CustomersPage() {
               <span>Ort</span>
               <input
                 value={form.city ?? ""}
-                onChange={(e) => updateForm("city", e.target.value)}
+                onChange={(event) => updateForm("city", event.target.value)}
               />
             </label>
 
@@ -273,7 +286,7 @@ export function CustomersPage() {
               <span>Land</span>
               <input
                 value={form.country ?? ""}
-                onChange={(e) => updateForm("country", e.target.value)}
+                onChange={(event) => updateForm("country", event.target.value)}
               />
             </label>
           </div>
@@ -283,7 +296,7 @@ export function CustomersPage() {
             <textarea
               rows={4}
               value={form.notes ?? ""}
-              onChange={(e) => updateForm("notes", e.target.value)}
+              onChange={(event) => updateForm("notes", event.target.value)}
             />
           </label>
 
