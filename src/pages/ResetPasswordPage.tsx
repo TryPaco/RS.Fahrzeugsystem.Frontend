@@ -88,7 +88,7 @@ export function ResetPasswordPage() {
         {success ? <div className="success-box">{success}</div> : null}
 
         <button type="submit" disabled={isSubmitting}>
-          {isSubmitting ? "Speichere..." : "Passwort zuruecksetzen"}
+          {isSubmitting ? "Speichere..." : "Passwort zurücksetzen"}
         </button>
 
         <Link className="auth-link" to="/login">

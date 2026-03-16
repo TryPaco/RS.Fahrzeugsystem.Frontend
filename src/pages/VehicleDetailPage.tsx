@@ -340,7 +340,7 @@ export function VehicleDetailPage() {
         if (!item) return;
 
         const confirmed = window.confirm(
-            `Fahrzeug ${item.internalNumber} wirklich loeschen?\n\nDiese Aktion kann nicht rueckgaengig gemacht werden.`
+            `Fahrzeug ${item.internalNumber} wirklich löschen?\n\nDiese Aktion kann nicht rückgängig gemacht werden.`
         );
 
         if (!confirmed) return;
@@ -355,7 +355,7 @@ export function VehicleDetailPage() {
             setSaveError(
                 err?.response?.data?.title ||
                 err?.response?.data ||
-                "Fahrzeug konnte nicht geloescht werden."
+                "Fahrzeug konnte nicht gelöscht werden."
             );
         } finally {
             setIsDeleting(false);

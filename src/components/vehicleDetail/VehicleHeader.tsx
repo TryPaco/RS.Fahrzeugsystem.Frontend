@@ -59,7 +59,7 @@ export function VehicleHeader({
                     onClick={onDelete}
                     disabled={isDeleting || isSaving}
                 >
-                    {isDeleting ? "Loeschen..." : "Fahrzeug loeschen"}
+                    {isDeleting ? "Löschen..." : "Fahrzeug löschen"}
                 </button>
             </div>
         </div>

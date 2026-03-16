@@ -88,7 +88,7 @@ export function SmtpSettingsPage() {
 
     const port = Number(form.port);
     if (!Number.isInteger(port) || port <= 0) {
-      setSaveError("Bitte einen gueltigen SMTP-Port eingeben.");
+      setSaveError("Bitte einen gültigen SMTP-Port eingeben.");
       return;
     }
 
@@ -128,7 +128,7 @@ export function SmtpSettingsPage() {
       <div className="page-stack">
         <PageHeader
           title="E-Mail-Einstellungen"
-          subtitle="Dieser Bereich ist nur fuer Superadmin sichtbar."
+          subtitle="Dieser Bereich ist nur für Superadmin sichtbar."
         />
         <div className="error-box">Du hast keinen Zugriff auf die SMTP-Verwaltung.</div>
       </div>
@@ -139,7 +139,7 @@ export function SmtpSettingsPage() {
     <div className="page-stack">
       <PageHeader
         title="E-Mail-Einstellungen"
-        subtitle="Lege hier den SMTP-Server fuer Passwort-Reset und Systemmails fest."
+        subtitle="Lege hier den SMTP-Server für Passwort-Reset und Systemmails fest."
       />
 
       <form className="card page-stack settings-card" onSubmit={handleSubmit}>
@@ -178,7 +178,7 @@ export function SmtpSettingsPage() {
               type="password"
               value={form.password}
               onChange={(event) => updateForm("password", event.target.value)}
-              placeholder={form.hasPassword ? "Unveraendert lassen, um es zu behalten" : ""}
+              placeholder={form.hasPassword ? "Unverändert lassen, um es zu behalten" : ""}
               autoComplete="new-password"
             />
           </label>
@@ -208,13 +208,13 @@ export function SmtpSettingsPage() {
             checked={form.enableSsl}
             onChange={(event) => updateForm("enableSsl", event.target.checked)}
           />
-          <span>SSL/TLS fuer den Versand aktivieren</span>
+          <span>SSL/TLS für den Versand aktivieren</span>
         </label>
 
         {form.hasPassword ? (
           <div className="warning-box">
-            Es ist bereits ein SMTP-Passwort gespeichert. Wenn du das Feld leer laesst,
-            bleibt es unveraendert erhalten.
+            Es ist bereits ein SMTP-Passwort gespeichert. Wenn du das Feld leer lässt,
+            bleibt es unverändert erhalten.
           </div>
         ) : null}
 
