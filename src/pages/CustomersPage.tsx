@@ -333,34 +333,61 @@ export function CustomersPage() {
 
         {!loading && !loadingError ? (
           filteredItems.length > 0 ? (
-            <div className="table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Kundennummer</th>
-                    <th>Name</th>
-                    <th>Firma</th>
-                    <th>Telefon</th>
-                    <th>E-Mail</th>
-                    <th>Ort</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredItems.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.customerNumber}</td>
-                      <td>
-                        {item.firstName} {item.lastName}
-                      </td>
-                      <td>{item.companyName || "-"}</td>
-                      <td>{item.phone || "-"}</td>
-                      <td>{item.email || "-"}</td>
-                      <td>{item.city || "-"}</td>
+            <>
+              <div className="table-wrap desktop-table">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Kundennummer</th>
+                      <th>Name</th>
+                      <th>Firma</th>
+                      <th>Telefon</th>
+                      <th>E-Mail</th>
+                      <th>Ort</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredItems.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.customerNumber}</td>
+                        <td>
+                          {item.firstName} {item.lastName}
+                        </td>
+                        <td>{item.companyName || "-"}</td>
+                        <td>{item.phone || "-"}</td>
+                        <td>{item.email || "-"}</td>
+                        <td>{item.city || "-"}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mobile-card-list">
+                {filteredItems.map((item) => (
+                  <article key={item.id} className="mobile-data-card">
+                    <div className="mobile-data-card-header">
+                      <strong>{item.customerNumber}</strong>
+                      <span>{item.city || "-"}</span>
+                    </div>
+                    <h3>
+                      {item.firstName} {item.lastName}
+                    </h3>
+                    <p>{item.companyName || "Keine Firma hinterlegt"}</p>
+                    <div className="mobile-data-card-grid">
+                      <div>
+                        <strong>Telefon</strong>
+                        <span>{item.phone || "-"}</span>
+                      </div>
+                      <div>
+                        <strong>E-Mail</strong>
+                        <span>{item.email || "-"}</span>
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+            </>
           ) : (
             <p>Keine Kunden vorhanden.</p>
           )

@@ -27,6 +27,7 @@ export function AppLayout() {
           <NavLink to="/customers">Kunden</NavLink>
           <NavLink to="/vehicles">Fahrzeuge</NavLink>
           <NavLink to="/labels">Labels</NavLink>
+          {hasPermission('vehiclecatalog.manage') ? <NavLink to="/vehicle-catalog">Fahrzeugkatalog</NavLink> : null}
           {hasPermission('users.view') ? <NavLink to="/users">Benutzer</NavLink> : null}
           {isSuperadmin ? <NavLink to="/settings/smtp">E-Mail</NavLink> : null}
         </nav>
@@ -50,6 +51,13 @@ export function AppLayout() {
           <Outlet />
         </main>
       </div>
+
+      <nav className="mobile-bottom-nav" aria-label="Mobile Navigation">
+        <NavLink to="/">Start</NavLink>
+        <NavLink to="/customers">Kunden</NavLink>
+        <NavLink to="/vehicles">Fahrzeuge</NavLink>
+        <NavLink to="/labels">Labels</NavLink>
+      </nav>
     </div>
   );
 }

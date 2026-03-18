@@ -409,53 +409,93 @@ export function UsersPage() {
 
         {!loading && !loadingError ? (
           filteredItems.length > 0 ? (
-            <div className="table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Benutzername</th>
-                    <th>Name</th>
-                    <th>E-Mail</th>
-                    <th>Status</th>
-                    <th>Rollen</th>
-                    {canManageUsers ? <th>Aktion</th> : null}
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredItems.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.username}</td>
-                      <td>{item.displayName}</td>
-                      <td>{item.email}</td>
-                      <td>{item.isActive ? "Aktiv" : "Inaktiv"}</td>
-                      <td>{item.roles.join(", ") || "-"}</td>
-                      {canManageUsers ? (
-                        <td>
-                          <div className="actions">
-                            <button
-                              type="button"
-                              className="secondary"
-                              onClick={() => startEdit(item)}
-                            >
-                              Bearbeiten
-                            </button>
-
-                            <button
-                              type="button"
-                              className="secondary"
-                              disabled={item.id === user?.userId}
-                              onClick={() => void handleDelete(item)}
-                            >
-                              Löschen
-                            </button>
-                          </div>
-                        </td>
-                      ) : null}
+            <>
+              <div className="table-wrap desktop-table">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Benutzername</th>
+                      <th>Name</th>
+                      <th>E-Mail</th>
+                      <th>Status</th>
+                      <th>Rollen</th>
+                      {canManageUsers ? <th>Aktion</th> : null}
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredItems.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.username}</td>
+                        <td>{item.displayName}</td>
+                        <td>{item.email}</td>
+                        <td>{item.isActive ? "Aktiv" : "Inaktiv"}</td>
+                        <td>{item.roles.join(", ") || "-"}</td>
+                        {canManageUsers ? (
+                          <td>
+                            <div className="actions">
+                              <button
+                                type="button"
+                                className="secondary"
+                                onClick={() => startEdit(item)}
+                              >
+                                Bearbeiten
+                              </button>
+
+                              <button
+                                type="button"
+                                className="secondary"
+                                disabled={item.id === user?.userId}
+                                onClick={() => void handleDelete(item)}
+                              >
+                                Löschen
+                              </button>
+                            </div>
+                          </td>
+                        ) : null}
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mobile-card-list">
+                {filteredItems.map((item) => (
+                  <article key={item.id} className="mobile-data-card">
+                    <div className="mobile-data-card-header">
+                      <strong>{item.username}</strong>
+                      <span>{item.isActive ? "Aktiv" : "Inaktiv"}</span>
+                    </div>
+                    <h3>{item.displayName}</h3>
+                    <p>{item.email}</p>
+                    <div className="mobile-data-card-grid">
+                      <div>
+                        <strong>Rollen</strong>
+                        <span>{item.roles.join(", ") || "-"}</span>
+                      </div>
+                    </div>
+                    {canManageUsers ? (
+                      <div className="actions">
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => startEdit(item)}
+                        >
+                          Bearbeiten
+                        </button>
+                        <button
+                          type="button"
+                          className="secondary"
+                          disabled={item.id === user?.userId}
+                          onClick={() => void handleDelete(item)}
+                        >
+                          Löschen
+                        </button>
+                      </div>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            </>
           ) : (
             <p>Keine Benutzer vorhanden.</p>
           )

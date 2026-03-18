@@ -6,7 +6,7 @@ export function ProtectedRoute({ children }: { children: React.ReactNode }) {
   const location = useLocation();
 
   if (isLoading) {
-    return <div className="page-loader">Lade Benutzersitzung…</div>;
+    return <div className="page-loader">Lade Benutzersitzung...</div>;
   }
 
   if (!isAuthenticated) {

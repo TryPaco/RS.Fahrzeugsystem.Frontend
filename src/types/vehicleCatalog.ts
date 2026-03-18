@@ -1,0 +1,40 @@
+export type VehicleCatalogEntry = {
+  id: string;
+  brand: string;
+  model: string;
+  variant?: string | null;
+  yearLabel?: string | null;
+  buildYearFrom?: number | null;
+  buildYearTo?: number | null;
+  engine?: string | null;
+  engineCode?: string | null;
+  transmission?: string | null;
+  transmissionCode?: string | null;
+  ecuType?: string | null;
+  ecuManufacturer?: string | null;
+  driveType?: string | null;
+  platform?: string | null;
+  notes?: string | null;
+  isActive: boolean;
+  createdAtUtc: string;
+  updatedAtUtc?: string | null;
+};
+
+export type VehicleCatalogUpsertRequest = {
+  brand: string;
+  model: string;
+  variant: string;
+  yearLabel: string;
+  buildYearFrom: string;
+  buildYearTo: string;
+  engine: string;
+  engineCode: string;
+  transmission: string;
+  transmissionCode: string;
+  ecuType: string;
+  ecuManufacturer: string;
+  driveType: string;
+  platform: string;
+  notes: string;
+  isActive: boolean;
+};

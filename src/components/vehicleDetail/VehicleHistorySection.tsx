@@ -139,73 +139,137 @@ export function VehicleHistorySection({
 
             {!historyLoading && !historyError ? (
                 historyItems.length > 0 ? (
-                    <div className="table-wrap">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Datum</th>
-                                    <th>Titel</th>
-                                    <th>Typ</th>
-                                    <th>KM</th>
-                                    <th>Beschreibung</th>
-                                    <th>Aktion</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {historyItems.map((entry) => (
-                                    <tr key={entry.id}>
-                                        <td>{formatDate(entry.eventDateUtc)}</td>
-                                        <td>
-                                            {editingHistoryId === entry.id ? (
-                                                <input
-                                                    value={entry.title}
-                                                    onChange={(e) => onEditHistoryTitle(entry.id, e.target.value)}
-                                                />
-                                            ) : entry.title}
-                                        </td>
-                                        <td>{entry.eventType}</td>
-                                        <td>{entry.kmValue}</td>
-                                        <td>{entry.description || "-"}</td>
-                                        <td>
-                                            {editingHistoryId === entry.id ? (
-                                                <>
-                                                    <button
-                                                        className="secondary"
-                                                        onClick={() => onUpdateHistory(entry)}
-                                                    >
-                                                        Speichern
-                                                    </button>
-
-                                                    <button
-                                                        className="secondary"
-                                                        onClick={onCancelEditHistory}
-                                                    >
-                                                        Abbrechen
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        className="secondary"
-                                                        onClick={() => onStartEditHistory(entry.id)}
-                                                    >
-                                                        Bearbeiten
-                                                    </button>
-
-                                                    <button
-                                                        className="secondary"
-                                                        onClick={() => onDeleteHistory(entry.id)}
-                                                    >
-                                                        Löschen
-                                                    </button>
-                                                </>
-                                            )}
-                                        </td>
+                    <>
+                        <div className="table-wrap desktop-table">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Datum</th>
+                                        <th>Titel</th>
+                                        <th>Typ</th>
+                                        <th>KM</th>
+                                        <th>Beschreibung</th>
+                                        <th>Aktion</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {historyItems.map((entry) => (
+                                        <tr key={entry.id}>
+                                            <td>{formatDate(entry.eventDateUtc)}</td>
+                                            <td>
+                                                {editingHistoryId === entry.id ? (
+                                                    <input
+                                                        value={entry.title}
+                                                        onChange={(e) => onEditHistoryTitle(entry.id, e.target.value)}
+                                                    />
+                                                ) : entry.title}
+                                            </td>
+                                            <td>{entry.eventType}</td>
+                                            <td>{entry.kmValue}</td>
+                                            <td>{entry.description || "-"}</td>
+                                            <td>
+                                                {editingHistoryId === entry.id ? (
+                                                    <>
+                                                        <button
+                                                            className="secondary"
+                                                            onClick={() => onUpdateHistory(entry)}
+                                                        >
+                                                            Speichern
+                                                        </button>
+
+                                                        <button
+                                                            className="secondary"
+                                                            onClick={onCancelEditHistory}
+                                                        >
+                                                            Abbrechen
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            className="secondary"
+                                                            onClick={() => onStartEditHistory(entry.id)}
+                                                        >
+                                                            Bearbeiten
+                                                        </button>
+
+                                                        <button
+                                                            className="secondary"
+                                                            onClick={() => onDeleteHistory(entry.id)}
+                                                        >
+                                                            Löschen
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div className="mobile-card-list">
+                            {historyItems.map((entry) => (
+                                <article key={entry.id} className="mobile-data-card">
+                                    <div className="mobile-data-card-header">
+                                        <strong>{entry.title}</strong>
+                                        <span>{entry.eventType}</span>
+                                    </div>
+                                    <div className="mobile-data-card-grid">
+                                        <div>
+                                            <strong>Datum</strong>
+                                            <span>{formatDate(entry.eventDateUtc)}</span>
+                                        </div>
+                                        <div>
+                                            <strong>KM</strong>
+                                            <span>{entry.kmValue}</span>
+                                        </div>
+                                        <div>
+                                            <strong>Beschreibung</strong>
+                                            <span>{entry.description || "-"}</span>
+                                        </div>
+                                    </div>
+                                    <div className="mobile-data-card-actions">
+                                        {editingHistoryId === entry.id ? (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    className="secondary"
+                                                    onClick={() => onUpdateHistory(entry)}
+                                                >
+                                                    Speichern
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="secondary"
+                                                    onClick={onCancelEditHistory}
+                                                >
+                                                    Abbrechen
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    className="secondary"
+                                                    onClick={() => onStartEditHistory(entry.id)}
+                                                >
+                                                    Bearbeiten
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="secondary"
+                                                    onClick={() => onDeleteHistory(entry.id)}
+                                                >
+                                                    Löschen
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    </>
                 ) : (
                     <p>Keine Historie vorhanden.</p>
                 )

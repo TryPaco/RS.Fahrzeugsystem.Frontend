@@ -1,6 +1,9 @@
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { http } from "../api/http";
+import { getVehicleCatalog } from "../api/vehicleCatalogApi";
+import { useAuth } from "../contexts/AuthContext";
+import type { VehicleCatalogEntry } from "../types/vehicleCatalog";
 
 type CustomerListItem = {
   id: string;
@@ -68,6 +71,8 @@ type VinDecodeResult = {
   serialNumber?: string | null;
 };
 
+type VehicleCreateMode = "catalog" | "manual";
+
 const initialForm: CreateVehicleRequest = {
   customerId: "",
   internalNumber: "",
@@ -100,17 +105,49 @@ function getNextVehicleInternalNumber(items: VehicleListItem[]) {
   return `FZG-${String(highestNumber + 1).padStart(6, "0")}`;
 }
 
+function getCatalogYearLabel(item: VehicleCatalogEntry) {
+  return item.yearLabel || item.variant || "Ohne Jahresangabe";
+}
+
+function formatVariantLabel(item: VehicleCatalogEntry) {
+  if (item.variant && item.yearLabel && item.variant !== item.yearLabel) {
+    return `${item.variant} | ${item.yearLabel}`;
+  }
+
+  return item.variant || item.yearLabel || "";
+}
+
+function formatMotorLabel(item: VehicleCatalogEntry) {
+  if (item.engine && item.engineCode) {
+    return `${item.engine} - ${item.engineCode}`;
+  }
+
+  return item.engine || item.engineCode || "Motor auswählen";
+}
+
 export function VehiclesPage() {
+  const { hasPermission } = useAuth();
+  const canUseCatalog = hasPermission("vehiclecatalog.view");
+
   const [items, setItems] = useState<VehicleListItem[]>([]);
   const [customers, setCustomers] = useState<CustomerListItem[]>([]);
+  const [catalogItems, setCatalogItems] = useState<VehicleCatalogEntry[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(false);
+  const [catalogError, setCatalogError] = useState("");
   const [loading, setLoading] = useState(true);
   const [loadingError, setLoadingError] = useState("");
   const [query, setQuery] = useState("");
 
   const [showCreateForm, setShowCreateForm] = useState(false);
+  const [createMode, setCreateMode] = useState<VehicleCreateMode>(canUseCatalog ? "catalog" : "manual");
   const [form, setForm] = useState<CreateVehicleRequest>(initialForm);
   const [createError, setCreateError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const [selectedCatalogBrand, setSelectedCatalogBrand] = useState("");
+  const [selectedCatalogModel, setSelectedCatalogModel] = useState("");
+  const [selectedCatalogYear, setSelectedCatalogYear] = useState("");
+  const [selectedCatalogEntryId, setSelectedCatalogEntryId] = useState("");
 
   const [vinInfo, setVinInfo] = useState<VinDecodeResult | null>(null);
   const [vinError, setVinError] = useState("");
@@ -143,10 +180,42 @@ export function VehiclesPage() {
     }
   }
 
+  async function loadCatalog() {
+    if (!canUseCatalog) {
+      setCatalogItems([]);
+      setCatalogError("");
+      return;
+    }
+
+    setCatalogLoading(true);
+    setCatalogError("");
+
+    try {
+      const data = await getVehicleCatalog(false);
+      setCatalogItems(data);
+    } catch (error: any) {
+      setCatalogItems([]);
+      setCatalogError(
+        error?.response?.data?.title ||
+          error?.response?.data ||
+          "Fahrzeugkatalog konnte nicht geladen werden."
+      );
+    } finally {
+      setCatalogLoading(false);
+    }
+  }
+
   useEffect(() => {
     void loadVehicles();
     void loadCustomers();
-  }, []);
+    void loadCatalog();
+  }, [canUseCatalog]);
+
+  useEffect(() => {
+    if (!canUseCatalog) {
+      setCreateMode("manual");
+    }
+  }, [canUseCatalog]);
 
   const nextVehicleInternalNumber = useMemo(
     () => getNextVehicleInternalNumber(items),
@@ -172,6 +241,56 @@ export function VehiclesPage() {
     });
   }, [items, query]);
 
+  const catalogBrandOptions = useMemo(
+    () => Array.from(new Set(catalogItems.map((item) => item.brand))).sort(),
+    [catalogItems]
+  );
+
+  const catalogModelOptions = useMemo(() => {
+    if (!selectedCatalogBrand) return [];
+
+    return Array.from(
+      new Set(
+        catalogItems
+          .filter((item) => item.brand === selectedCatalogBrand)
+          .map((item) => item.model)
+      )
+    ).sort();
+  }, [catalogItems, selectedCatalogBrand]);
+
+  const catalogYearOptions = useMemo(() => {
+    if (!selectedCatalogBrand || !selectedCatalogModel) return [];
+
+    return Array.from(
+      new Set(
+        catalogItems
+          .filter(
+            (item) =>
+              item.brand === selectedCatalogBrand && item.model === selectedCatalogModel
+          )
+          .map((item) => getCatalogYearLabel(item))
+      )
+    ).sort();
+  }, [catalogItems, selectedCatalogBrand, selectedCatalogModel]);
+
+  const catalogMotorOptions = useMemo(() => {
+    if (!selectedCatalogBrand || !selectedCatalogModel || !selectedCatalogYear) return [];
+
+    return catalogItems
+      .filter(
+        (item) =>
+          item.brand === selectedCatalogBrand &&
+          item.model === selectedCatalogModel &&
+          getCatalogYearLabel(item) === selectedCatalogYear
+      )
+      .sort((a, b) => formatMotorLabel(a).localeCompare(formatMotorLabel(b), "de"));
+  }, [catalogItems, selectedCatalogBrand, selectedCatalogModel, selectedCatalogYear]);
+
+  const selectedCatalogEntry = useMemo(
+    () => catalogItems.find((item) => item.id === selectedCatalogEntryId) ?? null,
+    [catalogItems, selectedCatalogEntryId]
+  );
+
   function updateForm<K extends keyof CreateVehicleRequest>(
     key: K,
     value: CreateVehicleRequest[K]
@@ -179,8 +298,45 @@ export function VehiclesPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function applyCatalogBaseSelection(brand: string, model: string, yearLabel: string) {
+    const matchingEntry = catalogItems.find(
+      (item) =>
+        item.brand === brand &&
+        item.model === model &&
+        getCatalogYearLabel(item) === yearLabel
+    );
+
+    setForm((prev) => ({
+      ...prev,
+      brand: brand || prev.brand,
+      model: model || prev.model,
+      modelVariant: matchingEntry ? formatVariantLabel(matchingEntry) : prev.modelVariant,
+      buildYear: matchingEntry?.buildYearFrom ? String(matchingEntry.buildYearFrom) : prev.buildYear,
+      engineCode: yearLabel ? "" : prev.engineCode,
+      transmission: yearLabel ? "" : prev.transmission,
+    }));
+  }
+
+  function applyCatalogEntry(entry: VehicleCatalogEntry | null) {
+    setForm((prev) => ({
+      ...prev,
+      brand: entry?.brand ?? prev.brand,
+      model: entry?.model ?? prev.model,
+      modelVariant: entry ? formatVariantLabel(entry) : prev.modelVariant,
+      buildYear: entry?.buildYearFrom ? String(entry.buildYearFrom) : prev.buildYear,
+      engineCode: entry?.engineCode ?? prev.engineCode,
+      transmission: entry?.transmission ?? prev.transmission,
+      notes: prev.notes || entry?.notes || "",
+    }));
+  }
+
   function resetForm() {
     setForm({ ...initialForm, internalNumber: nextVehicleInternalNumber });
+    setSelectedCatalogBrand("");
+    setSelectedCatalogModel("");
+    setSelectedCatalogYear("");
+    setSelectedCatalogEntryId("");
+    setCreateMode(canUseCatalog ? "catalog" : "manual");
     setCreateError("");
     setVinError("");
     setVinInfo(null);
@@ -303,14 +459,11 @@ export function VehiclesPage() {
               const nextOpenState = !prev;
 
               if (nextOpenState) {
-                setForm({ ...initialForm, internalNumber: nextVehicleInternalNumber });
+                resetForm();
               }
 
               return nextOpenState;
             });
-            setCreateError("");
-            setVinError("");
-            setVinInfo(null);
           }}
         >
           {showCreateForm ? "Formular schließen" : "Neues Fahrzeug"}
@@ -332,6 +485,145 @@ export function VehiclesPage() {
       {showCreateForm ? (
         <form className="card page-stack" onSubmit={handleCreateVehicle}>
           <h2>Neues Fahrzeug anlegen</h2>
+
+          {canUseCatalog ? (
+            <div className="actions">
+              <button
+                type="button"
+                className={createMode === "catalog" ? "" : "secondary"}
+                onClick={() => setCreateMode("catalog")}
+              >
+                Auswahlliste
+              </button>
+              <button
+                type="button"
+                className={createMode === "manual" ? "" : "secondary"}
+                onClick={() => setCreateMode("manual")}
+              >
+                Manuell
+              </button>
+            </div>
+          ) : null}
+
+          {canUseCatalog && createMode === "catalog" ? (
+            <div className="card page-stack">
+              <div className="section-title">
+                <h3>Fahrzeug aus Katalog auswählen</h3>
+                <span>{catalogItems.length} Einträge</span>
+              </div>
+
+              <p className="muted-text">
+                Wähle zuerst Marke, dann Modell, danach Jahr beziehungsweise Generation und
+                anschließend den Motor. Die Felder werden vorbelegt und können danach weiter
+                manuell angepasst werden.
+              </p>
+
+              <div className="form-grid">
+                <label className="field">
+                  <span>Marke</span>
+                  <select
+                    value={selectedCatalogBrand}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setSelectedCatalogBrand(value);
+                      setSelectedCatalogModel("");
+                      setSelectedCatalogYear("");
+                      setSelectedCatalogEntryId("");
+                      applyCatalogBaseSelection(value, "", "");
+                    }}
+                    disabled={catalogLoading}
+                  >
+                    <option value="">Bitte auswählen</option>
+                    {catalogBrandOptions.map((brand) => (
+                      <option key={brand} value={brand}>
+                        {brand}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field">
+                  <span>Modell</span>
+                  <select
+                    value={selectedCatalogModel}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setSelectedCatalogModel(value);
+                      setSelectedCatalogYear("");
+                      setSelectedCatalogEntryId("");
+                      applyCatalogBaseSelection(selectedCatalogBrand, value, "");
+                    }}
+                    disabled={catalogLoading || !selectedCatalogBrand}
+                  >
+                    <option value="">Bitte auswählen</option>
+                    {catalogModelOptions.map((model) => (
+                      <option key={model} value={model}>
+                        {model}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field">
+                  <span>Jahr / Generation</span>
+                  <select
+                    value={selectedCatalogYear}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setSelectedCatalogYear(value);
+                      setSelectedCatalogEntryId("");
+                      applyCatalogBaseSelection(selectedCatalogBrand, selectedCatalogModel, value);
+                    }}
+                    disabled={catalogLoading || !selectedCatalogModel}
+                  >
+                    <option value="">Bitte auswählen</option>
+                    {catalogYearOptions.map((yearLabel) => (
+                      <option key={yearLabel} value={yearLabel}>
+                        {yearLabel}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+
+                <label className="field">
+                  <span>Motor</span>
+                  <select
+                    value={selectedCatalogEntryId}
+                    onChange={(event) => {
+                      const value = event.target.value;
+                      setSelectedCatalogEntryId(value);
+                      const entry = catalogMotorOptions.find((item) => item.id === value) ?? null;
+                      applyCatalogEntry(entry);
+                    }}
+                    disabled={catalogLoading || !selectedCatalogYear}
+                  >
+                    <option value="">Bitte auswählen</option>
+                    {catalogMotorOptions.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {formatMotorLabel(item)}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              </div>
+
+              {catalogError ? <div className="warning-box">{catalogError}</div> : null}
+
+              {selectedCatalogEntry ? (
+                <div className="detail-grid">
+                  <div><strong>Variante:</strong><br />{formatVariantLabel(selectedCatalogEntry) || "-"}</div>
+                  <div><strong>Motor:</strong><br />{selectedCatalogEntry.engine || "-"}</div>
+                  <div><strong>Motorcode:</strong><br />{selectedCatalogEntry.engineCode || "-"}</div>
+                  <div><strong>Getriebe:</strong><br />{selectedCatalogEntry.transmission || "-"}</div>
+                  <div><strong>Getriebecode:</strong><br />{selectedCatalogEntry.transmissionCode || "-"}</div>
+                  <div><strong>Steuergerät:</strong><br />{selectedCatalogEntry.ecuType || "-"}</div>
+                  <div><strong>ECU-Hersteller:</strong><br />{selectedCatalogEntry.ecuManufacturer || "-"}</div>
+                  <div><strong>Antrieb:</strong><br />{selectedCatalogEntry.driveType || "-"}</div>
+                  <div><strong>Plattform:</strong><br />{selectedCatalogEntry.platform || "-"}</div>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
 
           <div className="form-grid">
             <label className="field">

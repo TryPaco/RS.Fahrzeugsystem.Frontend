@@ -160,79 +160,148 @@ export function VehiclePartsSection({
 
             {!partsLoading && !partsError ? (
                 partsItems.length > 0 ? (
-                    <div className="table-wrap">
-                        <table className="data-table">
-                            <thead>
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Hersteller</th>
-                                    <th>Teilenummer</th>
-                                    <th>Seriennummer</th>
-                                    <th>Einbau-KM</th>
-                                    <th>Status</th>
-                                    <th>Notizen</th>
-                                    <th>Aktion</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {partsItems.map((part) => (
-                                    <tr key={part.id}>
-                                        <td>
-                                            {editingPartId === part.id ? (
-                                                <input
-                                                    value={part.name}
-                                                    onChange={(e) => onEditPartName(part.id, e.target.value)}
-                                                />
-                                            ) : part.name}
-                                        </td>
-
-                                        <td>{part.manufacturer || "-"}</td>
-                                        <td>{part.partNumber || "-"}</td>
-                                        <td>{part.serialNumber || "-"}</td>
-                                        <td>{part.installedKm}</td>
-                                        <td>{part.status || "-"}</td>
-                                        <td>{part.notes || "-"}</td>
-
-                                        <td>
-                                            {editingPartId === part.id ? (
-                                                <>
-                                                    <button
-                                                        className="secondary"
-                                                        onClick={() => onUpdatePart(part)}
-                                                    >
-                                                        Speichern
-                                                    </button>
-
-                                                    <button
-                                                        className="secondary"
-                                                        onClick={onCancelEditPart}
-                                                    >
-                                                        Abbrechen
-                                                    </button>
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <button
-                                                        className="secondary"
-                                                        onClick={() => onStartEditPart(part.id)}
-                                                    >
-                                                        Bearbeiten
-                                                    </button>
-
-                                                    <button
-                                                        className="secondary"
-                                                        onClick={() => onDeletePart(part.id)}
-                                                    >
-                                                        Löschen
-                                                    </button>
-                                                </>
-                                            )}
-                                        </td>
+                    <>
+                        <div className="table-wrap desktop-table">
+                            <table className="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Hersteller</th>
+                                        <th>Teilenummer</th>
+                                        <th>Seriennummer</th>
+                                        <th>Einbau-KM</th>
+                                        <th>Status</th>
+                                        <th>Notizen</th>
+                                        <th>Aktion</th>
                                     </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </div>
+                                </thead>
+                                <tbody>
+                                    {partsItems.map((part) => (
+                                        <tr key={part.id}>
+                                            <td>
+                                                {editingPartId === part.id ? (
+                                                    <input
+                                                        value={part.name}
+                                                        onChange={(e) => onEditPartName(part.id, e.target.value)}
+                                                    />
+                                                ) : part.name}
+                                            </td>
+
+                                            <td>{part.manufacturer || "-"}</td>
+                                            <td>{part.partNumber || "-"}</td>
+                                            <td>{part.serialNumber || "-"}</td>
+                                            <td>{part.installedKm}</td>
+                                            <td>{part.status || "-"}</td>
+                                            <td>{part.notes || "-"}</td>
+
+                                            <td>
+                                                {editingPartId === part.id ? (
+                                                    <>
+                                                        <button
+                                                            className="secondary"
+                                                            onClick={() => onUpdatePart(part)}
+                                                        >
+                                                            Speichern
+                                                        </button>
+
+                                                        <button
+                                                            className="secondary"
+                                                            onClick={onCancelEditPart}
+                                                        >
+                                                            Abbrechen
+                                                        </button>
+                                                    </>
+                                                ) : (
+                                                    <>
+                                                        <button
+                                                            className="secondary"
+                                                            onClick={() => onStartEditPart(part.id)}
+                                                        >
+                                                            Bearbeiten
+                                                        </button>
+
+                                                        <button
+                                                            className="secondary"
+                                                            onClick={() => onDeletePart(part.id)}
+                                                        >
+                                                            Löschen
+                                                        </button>
+                                                    </>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <div className="mobile-card-list">
+                            {partsItems.map((part) => (
+                                <article key={part.id} className="mobile-data-card">
+                                    <div className="mobile-data-card-header">
+                                        <strong>{part.name}</strong>
+                                        <span>{part.status || "-"}</span>
+                                    </div>
+                                    <p>{part.manufacturer || "Kein Hersteller hinterlegt"}</p>
+                                    <div className="mobile-data-card-grid">
+                                        <div>
+                                            <strong>Teilenummer</strong>
+                                            <span>{part.partNumber || "-"}</span>
+                                        </div>
+                                        <div>
+                                            <strong>Seriennummer</strong>
+                                            <span>{part.serialNumber || "-"}</span>
+                                        </div>
+                                        <div>
+                                            <strong>Einbau-KM</strong>
+                                            <span>{part.installedKm}</span>
+                                        </div>
+                                        <div>
+                                            <strong>Notizen</strong>
+                                            <span>{part.notes || "-"}</span>
+                                        </div>
+                                    </div>
+                                    <div className="mobile-data-card-actions">
+                                        {editingPartId === part.id ? (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    className="secondary"
+                                                    onClick={() => onUpdatePart(part)}
+                                                >
+                                                    Speichern
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="secondary"
+                                                    onClick={onCancelEditPart}
+                                                >
+                                                    Abbrechen
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <button
+                                                    type="button"
+                                                    className="secondary"
+                                                    onClick={() => onStartEditPart(part.id)}
+                                                >
+                                                    Bearbeiten
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    className="secondary"
+                                                    onClick={() => onDeletePart(part.id)}
+                                                >
+                                                    Löschen
+                                                </button>
+                                            </>
+                                        )}
+                                    </div>
+                                </article>
+                            ))}
+                        </div>
+                    </>
                 ) : (
                     <p>Keine Teile vorhanden.</p>
                 )

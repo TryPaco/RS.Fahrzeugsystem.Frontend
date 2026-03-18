@@ -12,6 +12,7 @@ import { ChangePasswordPage } from './pages/ChangePasswordPage';
 import { SmtpSettingsPage } from './pages/SmtpSettingsPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { ResetPasswordPage } from './pages/ResetPasswordPage';
+import { VehicleCatalogPage } from './pages/VehicleCatalogPage';
 
 export default function App() {
   return (
@@ -32,6 +33,7 @@ export default function App() {
         <Route path="vehicles" element={<VehiclesPage />} />
         <Route path="vehicles/:id" element={<VehicleDetailPage />} />
         <Route path="labels" element={<LabelsPage />} />
+        <Route path="vehicle-catalog" element={<VehicleCatalogPage />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="change-password" element={<ChangePasswordPage />} />
         <Route path="settings/smtp" element={<SmtpSettingsPage />} />

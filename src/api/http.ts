@@ -1,6 +1,7 @@
 import axios from 'axios';
 
 const baseURL = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5000/api';
+const appBase = import.meta.env.BASE_URL;
 
 export const http = axios.create({
   baseURL,
@@ -23,7 +24,7 @@ http.interceptors.response.use(
       localStorage.removeItem('rs_token');
       localStorage.removeItem('rs_user');
       localStorage.removeItem('rs_token_expires');
-      window.location.href = '/login';
+      window.location.href = `${appBase}login`;
     }
 
     return Promise.reject(error);

@@ -56,38 +56,70 @@ export function VehicleLabelsSection({
             </div>
 
             {item.labels && item.labels.length > 0 ? (
-                <div className="table-wrap">
-                    <table className="data-table">
-                        <thead>
-                            <tr>
-                                <th>Code</th>
-                                <th>Position</th>
-                                <th>Zugewiesen am</th>
-                                <th>Notizen</th>
-                                <th>Aktion</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {item.labels.map((label) => (
-                                <tr key={label.id}>
-                                    <td>{label.code}</td>
-                                    <td>{label.positionOnVehicle || "-"}</td>
-                                    <td>{formatDate(label.assignedAtUtc)}</td>
-                                    <td>{label.notes || "-"}</td>
-                                    <td>
-                                        <button
-                                            type="button"
-                                            className="secondary"
-                                            onClick={() => onUnassign(label.code)}
-                                        >
-                                            Lösen
-                                        </button>
-                                    </td>
+                <>
+                    <div className="table-wrap desktop-table">
+                        <table className="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Code</th>
+                                    <th>Position</th>
+                                    <th>Zugewiesen am</th>
+                                    <th>Notizen</th>
+                                    <th>Aktion</th>
                                 </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                </div>
+                            </thead>
+                            <tbody>
+                                {item.labels.map((label) => (
+                                    <tr key={label.id}>
+                                        <td>{label.code}</td>
+                                        <td>{label.positionOnVehicle || "-"}</td>
+                                        <td>{formatDate(label.assignedAtUtc)}</td>
+                                        <td>{label.notes || "-"}</td>
+                                        <td>
+                                            <button
+                                                type="button"
+                                                className="secondary"
+                                                onClick={() => onUnassign(label.code)}
+                                            >
+                                                Lösen
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div className="mobile-card-list">
+                        {item.labels.map((label) => (
+                            <article key={label.id} className="mobile-data-card">
+                                <div className="mobile-data-card-header">
+                                    <strong>{label.code}</strong>
+                                    <span>{label.positionOnVehicle || "-"}</span>
+                                </div>
+                                <div className="mobile-data-card-grid">
+                                    <div>
+                                        <strong>Zugewiesen</strong>
+                                        <span>{formatDate(label.assignedAtUtc)}</span>
+                                    </div>
+                                    <div>
+                                        <strong>Notizen</strong>
+                                        <span>{label.notes || "-"}</span>
+                                    </div>
+                                </div>
+                                <div className="mobile-data-card-actions">
+                                    <button
+                                        type="button"
+                                        className="secondary"
+                                        onClick={() => onUnassign(label.code)}
+                                    >
+                                        Lösen
+                                    </button>
+                                </div>
+                            </article>
+                        ))}
+                    </div>
+                </>
             ) : (
                 <p>Keine Labels vorhanden.</p>
             )}

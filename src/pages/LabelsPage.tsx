@@ -385,52 +385,92 @@ export function LabelsPage() {
 
         {!loading && !loadingError ? (
           filteredItems.length > 0 ? (
-            <div className="table-wrap">
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Code</th>
-                    <th>Prefix</th>
-                    <th>Status</th>
-                    <th>Fahrzeug</th>
-                    <th>Position</th>
-                    <th>Zugewiesen am</th>
-                    <th>Aktion</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filteredItems.map((item) => (
-                    <tr key={item.id}>
-                      <td>{item.code}</td>
-                      <td>{item.prefix}</td>
-                      <td>{getStatusText(item.status)}</td>
-                      <td>
-                        {item.vehicle
-                          ? `${item.vehicle.internalNumber} - ${item.vehicle.brand} ${item.vehicle.model}${
-                              item.vehicle.licensePlate ? ` (${item.vehicle.licensePlate})` : ""
-                            }`
-                          : "-"}
-                      </td>
-                      <td>{item.positionOnVehicle || "-"}</td>
-                      <td>{formatDate(item.assignedAtUtc)}</td>
-                      <td>
-                        {item.vehicleId ? (
-                          <button
-                            type="button"
-                            className="secondary"
-                            onClick={() => void handleUnassignLabel(item.code)}
-                          >
-                            Lösen
-                          </button>
-                        ) : (
-                          "-"
-                        )}
-                      </td>
+            <>
+              <div className="table-wrap desktop-table">
+                <table className="data-table">
+                  <thead>
+                    <tr>
+                      <th>Code</th>
+                      <th>Prefix</th>
+                      <th>Status</th>
+                      <th>Fahrzeug</th>
+                      <th>Position</th>
+                      <th>Zugewiesen am</th>
+                      <th>Aktion</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {filteredItems.map((item) => (
+                      <tr key={item.id}>
+                        <td>{item.code}</td>
+                        <td>{item.prefix}</td>
+                        <td>{getStatusText(item.status)}</td>
+                        <td>
+                          {item.vehicle
+                            ? `${item.vehicle.internalNumber} - ${item.vehicle.brand} ${item.vehicle.model}${
+                                item.vehicle.licensePlate ? ` (${item.vehicle.licensePlate})` : ""
+                              }`
+                            : "-"}
+                        </td>
+                        <td>{item.positionOnVehicle || "-"}</td>
+                        <td>{formatDate(item.assignedAtUtc)}</td>
+                        <td>
+                          {item.vehicleId ? (
+                            <button
+                              type="button"
+                              className="secondary"
+                              onClick={() => void handleUnassignLabel(item.code)}
+                            >
+                              Lösen
+                            </button>
+                          ) : (
+                            "-"
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+
+              <div className="mobile-card-list">
+                {filteredItems.map((item) => (
+                  <article key={item.id} className="mobile-data-card">
+                    <div className="mobile-data-card-header">
+                      <strong>{item.code}</strong>
+                      <span>{getStatusText(item.status)}</span>
+                    </div>
+                    <h3>{item.vehicle ? `${item.vehicle.brand} ${item.vehicle.model}` : "Nicht zugewiesen"}</h3>
+                    <p>
+                      {item.vehicle
+                        ? `${item.vehicle.internalNumber}${item.vehicle.licensePlate ? ` (${item.vehicle.licensePlate})` : ""}`
+                        : "Freies Label"}
+                    </p>
+                    <div className="mobile-data-card-grid">
+                      <div>
+                        <strong>Position</strong>
+                        <span>{item.positionOnVehicle || "-"}</span>
+                      </div>
+                      <div>
+                        <strong>Zugewiesen</strong>
+                        <span>{formatDate(item.assignedAtUtc)}</span>
+                      </div>
+                    </div>
+                    {item.vehicleId ? (
+                      <div className="actions">
+                        <button
+                          type="button"
+                          className="secondary"
+                          onClick={() => void handleUnassignLabel(item.code)}
+                        >
+                          Lösen
+                        </button>
+                      </div>
+                    ) : null}
+                  </article>
+                ))}
+              </div>
+            </>
           ) : (
             <p>Keine Labels vorhanden.</p>
           )
